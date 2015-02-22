@@ -1,4 +1,4 @@
-Meteor.loginWithPassword 'm@m.es', 'secret', (error) -> console.log error
+Meteor.loginWithPassword 'm@m.es', 'secret'
 
 post.insert
-  text: 'hola'
+  text: 'insert coin'

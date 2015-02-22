@@ -1,20 +1,24 @@
-roles = new Mongo.Collection('Roles')
+@roles = new Mongo.Collection('Roles')
 roles.remove({})
 roleE = {}
 
-roleE.getPath = (name)->
-  path = roles.findOne(name:name).path
-  if path
-    path + ':' + name
-  else
-    name
+roleE.add = (role, bases)->
+  roles.insert({role:role, bases:bases})
 
-roleE.add = (base, name)->
-  if base is null
-    path = null
-  else
-    path = roleE.getPath(base)
-  roles.insert({path: path, name:name})
+roleE.roleIsIn = (role, bases) ->
+  done = bases[..]
+  flag = false
+  while not _.isEmpty(bases)
+    r = bases.shift()
+    if role == r
+      flag = true
+      break
+    for b in (roles.findOne(role: r).bases or [])
+      if b not in done
+        bases.push b
+        done.push b
+  return flag
+
 
 roleE.addRolesToUser = (roles_, userId) ->
   Meteor.users.update(userId, {$push: {roles: {$each: roles_}}})
@@ -22,15 +26,7 @@ roleE.addRolesToUser = (roles_, userId) ->
 
 roleE.userHasRole = (userId, role)->
   userRoles = Meteor.users.findOne(userId).roles
-
-  for rol in userRoles
-    if rol == role
-      return true
-    for r in roles.findOne(name: rol).path.split(':')
-      if role == r
-        return true
-  return false
-
+  return roleE.roleIsIn(role, userRoles)
 
 Security.defineMethod "ifHasRoleE",
   fetch: []
