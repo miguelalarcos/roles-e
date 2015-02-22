@@ -1,5 +1,6 @@
 @roles = new Mongo.Collection('Roles')
-roles.remove({})
+roles.permit(['insert', 'update', 'remove']).never().apply()
+
 roleE = {}
 
 roleE.add = (role, bases)->
