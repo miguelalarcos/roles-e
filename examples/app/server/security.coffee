@@ -1,0 +1,1 @@
+post.permit('insert').ifHasRoleE('superadmin').apply()
