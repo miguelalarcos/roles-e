@@ -103,3 +103,6 @@ Example:
 ```coffee
 roleE.setPermission 'post'
 ```
+
+Run tests:
+  ```meteor test-packages ./```
