@@ -36,6 +36,7 @@ roleE.removeRule = (rule) ->
   rules.remove(rule)
 
 roleE._roleIsIn = (role, bases) ->
+  bases = bases[..]
   done = bases[..]
   flag = false
   while not _.isEmpty(bases)
@@ -61,15 +62,16 @@ roleE.userHasRole = (userId, role)->
 roleE.setPermission = (collection) ->
   roleE.self[collection].deny
     insert: (userId, doc) ->
-      not roleE.can userId, 'insert', doc, collection
+      not roleE.can(userId, 'insert', doc, collection)
     update: (userId, doc, fields, modifier)->
       docSimulateInsert = _.clone(doc)
       for field in fields
         docSimulateInsert[field] = modifier['$set'][field]
-
-      (not roleE.can userId, 'update', doc, collection) or (not roleE.can userId, 'insert', docSimulateInsert, collection)
+      ncan1 = (not roleE.can(userId, 'update', doc, collection))
+      ncan2 = (not roleE.can(userId, 'insert', docSimulateInsert, collection))
+      return ncan1 or ncan2
     remove: (userId, doc) ->
-      not roleE.can userId, 'remove', doc, collection
+      not roleE.can(userId, 'remove', doc, collection)
 
   roleE.self[collection].allow
     insert: -> true
