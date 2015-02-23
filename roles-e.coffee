@@ -17,10 +17,10 @@ roleE._roles = roles
 roleE._rules = rules
 
 roleE.can = (userId, type, doc, collection) ->
-  for rule in rules.findOne(collection: collection).rules[type]
-    subdoc = _.pick(doc, _.keys(rule.query))
-    if _.isEqual(subdoc, rule.query)
-      return roleE.userHasRole(userId, rule.role)
+  for doc_ in rules.find(collection: collection, type: type).fetch()
+    subdoc = _.pick(doc, _.keys(doc_.query))
+    if _.isEqual(subdoc, doc_.query)
+      return roleE.userHasRole(userId, doc_.role)
   return false
 
 roleE.addRole = (role, bases)->
@@ -29,27 +29,13 @@ roleE.addRole = (role, bases)->
 roleE.removeRole = (role)->
   roles.remove({role:role})
 
-roleE.addRule = (collection, type, rule) ->
-  doc = rules.findOne(collection:collection)
-  if doc
-    rules_ = doc.rules
-    if rules_[type]
-      rules_[type].push rule
-    else
-      rules_[type] = [rule]
-    rules.update({collection:collection}, {$set: {rules: rules_}})
-  else
-    rules_ = {}
-    rules_[type] = [rule]
-    rules.insert({collection:collection, rules: rules_})
+roleE.addRule = (rule) ->
+  rules.insert rule
 
-roleE.removeRule = (collection, type, name) ->
-  field = 'rules.' + type
-  subdoc = {}
-  subdoc[field] = {name: name}
-  rules.update({collection:collection}, {$pull: subdoc})
+roleE.removeRule = (rule) ->
+  rules.remove(rule)
 
-roleE.roleIsIn = (role, bases) ->
+roleE._roleIsIn = (role, bases) ->
   done = bases[..]
   flag = false
   while not _.isEmpty(bases)
@@ -70,7 +56,7 @@ roleE.addRolesToUser = (roles_, userId) ->
 
 roleE.userHasRole = (userId, role)->
   userRoles = Meteor.users.findOne(userId).roles
-  return roleE.roleIsIn(role, userRoles)
+  return roleE._roleIsIn(role, userRoles)
 
 roleE.setPermission = (collection) ->
   roleE.self[collection].deny
