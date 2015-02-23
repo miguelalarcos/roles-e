@@ -63,7 +63,11 @@ roleE.setPermission = (collection) ->
     insert: (userId, doc) ->
       not roleE.can userId, 'insert', doc, collection
     update: (userId, doc, fields, modifier)->
-      not roleE.can userId, 'update', doc, collection
+      docSimulateInsert = _.clone(doc)
+      for field in fields
+        docSimulateInsert[field] = modifier['$set'][field]
+
+      (not roleE.can userId, 'update', doc, collection) or (not roleE.can userId, 'insert', docSimulateInsert, collection)
     remove: (userId, doc) ->
       not roleE.can userId, 'remove', doc, collection
 

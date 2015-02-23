@@ -19,8 +19,10 @@ Package.onUse(function(api) {
 
 Package.onTest(function(api) {
     api.use('tinytest');
+    api.use('practicalmeteor:munit', 'server');
     api.use('coffeescript');
-    api.use('accounts-base');
+    api.use('accounts-password');
+    api.use('mongo');
     api.use('miguelalarcos:roles-e');
     api.addFiles('roles-e-tests.coffee', 'server');
 });
