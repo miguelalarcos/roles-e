@@ -1,7 +1,16 @@
 @roles = new Mongo.Collection('Roles')
-roles.permit(['insert', 'update', 'remove']).never().apply()
+@rules = new Mongo.Collection('Rules')
 
 roleE = {}
+roleE.self = @
+
+roleE.can = (userId, type, doc, collection) ->
+  for rule in rules.findOne(collection: collection).rules[type]
+    subdoc = _.pick(doc, _.keys(rule.query))
+    if _.isEqual(subdoc, rule.query)
+      return roleE.userHasRole(userId, rule.role)
+  return false #nunca deberiamos llegar aqui
+
 
 roleE.add = (role, bases)->
   roles.insert({role:role, bases:bases})
@@ -29,7 +38,16 @@ roleE.userHasRole = (userId, role)->
   userRoles = Meteor.users.findOne(userId).roles
   return roleE.roleIsIn(role, userRoles)
 
-Security.defineMethod "ifHasRoleE",
-  fetch: []
-  deny: (type, arg, userId)->
-    return not roleE.userHasRole(userId, arg)
+roleE.setPermission = (collection) ->
+  @self[collection].deny
+    insert: (userId, doc) ->
+      not roleE.can userId, 'insert', doc, collection
+    update: (userId, doc, fields, modifier)->
+      not roleE.can userId, 'update', doc, collection
+    remove: (userId, doc) ->
+      not roleE.can userId, 'remove', doc, collection
+
+  @self[collection].allow
+    insert: -> true
+    update: -> true
+    remove: -> true

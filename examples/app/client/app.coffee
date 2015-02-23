@@ -1,4 +1,8 @@
 Meteor.loginWithPassword 'm@m.es', 'secret'
 
-post.insert
+_id = post.insert
   text: 'insert coin'
+  code: '04'
+
+post.update _id, {$set: {text: 'game over!'}}
+post.remove _id
