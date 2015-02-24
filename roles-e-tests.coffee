@@ -28,7 +28,13 @@ describe 'suite basics', ->
     stubs.meteor_users_findOne.withArgs({userId: 'miguel'}).returns({roles: ['A']})
 
     stubs.create '_rules_find', roleE._rules, 'find'
-    stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [{query: {a: '1'}, role: 'A'},{query: {a: '1', b: '2'}, role: 'B'}, {query: {a: '1', b: '2', c: '4'}, role: 'D'}]})
+    stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [
+      {query: {a: '1'}, role: 'A'},
+      {query: {a: '1', b: '2'}, role: 'B'},
+      {query: {a: '*', b: '2', c: '3'}, role: 'C'},
+      {query: {a: '1', b: '2', c: '4'}, role: 'D'},
+      {query: {a: '2', b: '2', c: '3'}, role: 'C'}
+    ]})
     stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{query: {a: '1', b: '2', owner: null}, role: 'A'}]})
 
   beforeEach (test)->
@@ -91,7 +97,7 @@ describe 'suite basics', ->
     catch error
       test.equal 1,0
 
-  it 'test update ok2', (test)-> # es posible que este test no tenga sentido
+  it 'test update ok2', (test)->
     Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
     try
       Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'9'}}
@@ -110,7 +116,15 @@ describe 'suite basics', ->
   it 'test update ok owner', (test)->
     Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
     try
-      Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'4'}}
+      Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'99'}}
       test.equal 1,1
     catch
       test.equal 1,0
+
+  it 'test update fail owner', (test)->
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'xmiguelx'}
+    try
+      Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'4'}}
+      test.equal 1,0
+    catch
+      test.equal 1,1
