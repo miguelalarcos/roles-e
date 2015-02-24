@@ -1,4 +1,4 @@
-@post = new Mongo.Collection 'Posts'
+@post = new Mongo.Collection 'TestPosts'
 post.remove({})
 
 flagSetPermission = false
@@ -19,10 +19,11 @@ describe 'suite basics', ->
     stubs._roles_findOne.withArgs({role: 'C'}).returns({bases: ['A', 'B']})
 
     stubs.create 'meteor_users_findOne', Meteor.users, 'findOne'
-    stubs.meteor_users_findOne.returns({roles: ['C']})
+    stubs.meteor_users_findOne.withArgs().returns({roles: ['C']})
+    stubs.meteor_users_findOne.withArgs({userId: 'miguel'}).returns({roles: ['A']})
 
     stubs.create '_rules_find', roleE._rules, 'find'
-    stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [{query: {a: '1', b: '2'}, role: 'A'}]})
+    stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [{query: {a: '1'}, role: 'A'},{query: {a: '1', b: '2'}, role: 'B'}, {query: {a: '1', b: '2', c: '4'}, role: 'D'}]})
     stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{query: {a: '1', b: '2'}, role: 'A'}]})
 
   beforeEach (test)->
@@ -60,31 +61,35 @@ describe 'suite basics', ->
     bool = roleE.can 'userId', 'insert', {a: '2', b: '2', c: '3'}, 'post'
     test.equal bool, false
 
+  it 'test can false2', (test) ->
+    bool = roleE.can 'miguel', 'insert', {a: '1', b: '2', c: '4'}, 'post'
+    test.equal bool, false
+
   it 'test insert post', (test) ->
-    Meteor.call '/Posts/insert', {a: '1', b: '2', c: '3'}
+    Meteor.call '/TestPosts/insert', {a: '1', b: '2', c: '3'}
     count = post.find().count()
     test.equal count, 1
 
   it 'test insert post fail', (test) ->
     try
-      Meteor.call '/Posts/insert', {a: '2', b: '2', c: '3'}
+      Meteor.call '/TestPosts/insert', {a: '2', b: '2', c: '3'}
     catch error
 
     count = post.find().count()
     test.equal count, 0
 
   it 'test update ok', (test)->
-    Meteor.call '/Posts/insert', {_id: '0', a: '1', b: '2', c: '3'}
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
     try
-      Meteor.call '/Posts/update', _id: '0', {$set: {c:'9'}}
+      Meteor.call '/TestPosts/update', _id: '0', {$set: {c:'9'}}
       test.equal 1,1
     catch error
       test.equal 1,0
 
   it 'test update fail', (test)->
-    Meteor.call '/Posts/insert', {_id: '0', a: '1', b: '2', c: '3'}
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
     try
-      Meteor.call '/Posts/update', _id: '0', {$set: {a:'9'}}
+      Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'9'}}
       test.equal 0,1
     catch
       test.equal 1,1

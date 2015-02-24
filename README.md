@@ -45,6 +45,14 @@ post.remove _id #remove failed: Access denied
 
 ```
 
+You can have several rules like this (given some collection and type 'insert', for example):
+
+* {name: 'F', query: {a: '1'}, role: 'A'}
+* {name: 'F2', query: {a: '1', b: '2'}, role: 'B'}
+* {name: 'F3', query: {a: '1', b: '2', c: '4'}, role: 'D'}
+
+If you want to insert {a:'1', b:'2', c:'4', d:'100'}, you match the three rules, and must pass all.
+
 API
 ---
 * addRule:

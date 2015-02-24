@@ -17,11 +17,15 @@ roleE._roles = roles
 roleE._rules = rules
 
 roleE.can = (userId, type, doc, collection) ->
+  ret = []
   for doc_ in rules.find(collection: collection, type: type).fetch()
     subdoc = _.pick(doc, _.keys(doc_.query))
     if _.isEqual(subdoc, doc_.query)
-      return roleE.userHasRole(userId, doc_.role)
-  return false
+      ret.push roleE.userHasRole(userId, doc_.role)
+  if _.isEmpty(ret)
+    return false
+  else
+    return _.all(ret)
 
 roleE.addRole = (role, bases)->
   roles.insert({role:role, bases:bases})
