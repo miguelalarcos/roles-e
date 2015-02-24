@@ -1,5 +1,7 @@
 roles = new Mongo.Collection('Roles')
 rules = new Mongo.Collection('Rules')
+tmp = new Mongo.Collection(null)
+tmp.remove({})
 
 roles.deny
   insert: -> true
@@ -22,10 +24,10 @@ roleE.can = (userId, type, doc, collection) ->
     subdoc = _.pick(doc, _.keys(doc_.query))
     if _.isEqual(subdoc, doc_.query)
       ret.push roleE.userHasRole(userId, doc_.role)
-  if _.isEmpty(ret)
-    return false
-  else
-    return _.all(ret)
+  #if _.isEmpty(ret)
+  #  return false
+  #else
+  return _.all(ret)
 
 roleE.addRole = (role, bases)->
   roles.insert({role:role, bases:bases})
@@ -68,11 +70,12 @@ roleE.setPermission = (collection) ->
     insert: (userId, doc) ->
       not roleE.can(userId, 'insert', doc, collection)
     update: (userId, doc, fields, modifier)->
-      docSimulateInsert = _.clone(doc)
-      for field in fields
-        docSimulateInsert[field] = modifier['$set'][field]
       ncanu = (not roleE.can(userId, 'update', doc, collection))
-      ncani = (not roleE.can(userId, 'insert', docSimulateInsert, collection))
+      _id = tmp.insert doc
+      tmp.update _id, modifier
+      doc_u = tmp.findOne _id
+      tmp.remove _id
+      ncani = (not roleE.can(userId, 'insert', doc_u, collection))
       return ncanu or ncani
     remove: (userId, doc) ->
       not roleE.can(userId, 'remove', doc, collection)

@@ -57,11 +57,11 @@ describe 'suite basics', ->
     bool = roleE.can 'userId', 'insert', {a: '1', b: '2', c: '3'}, 'post'
     test.equal bool, true
 
-  it 'test can false', (test) ->
+  it 'test can true 2', (test) ->
     bool = roleE.can 'userId', 'insert', {a: '2', b: '2', c: '3'}, 'post'
-    test.equal bool, false
+    test.equal bool, true
 
-  it 'test can false2', (test) ->
+  it 'test can false', (test) ->
     bool = roleE.can 'miguel', 'insert', {a: '1', b: '2', c: '4'}, 'post'
     test.equal bool, false
 
@@ -72,7 +72,7 @@ describe 'suite basics', ->
 
   it 'test insert post fail', (test) ->
     try
-      Meteor.call '/TestPosts/insert', {a: '2', b: '2', c: '3'}
+      Meteor.call '/TestPosts/insert', {a: '1', b: '2', c: '4'}
     catch error
 
     count = post.find().count()
@@ -86,10 +86,18 @@ describe 'suite basics', ->
     catch error
       test.equal 1,0
 
-  it 'test update fail', (test)->
+  it 'test update ok2', (test)->
     Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
     try
       Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'9'}}
-      test.equal 0,1
+      test.equal 1,1
+    catch
+      test.equal 1,0
+
+  it 'test update fail', (test)->
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
+    try
+      Meteor.call '/TestPosts/update', _id: '0', {$set: {c:'4'}}
+      test.equal 1,0
     catch
       test.equal 1,1

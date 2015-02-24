@@ -53,6 +53,25 @@ You can have several rules like this (given some collection and type 'insert', f
 
 If you want to insert {a:'1', b:'2', c:'4', d:'100'}, you match the three rules, and must pass all.
 
+The algorithm is next (given a collection):
+
+* insert: check doc to insert with the rules type *insert*
+  * 0 rules: can insert
+  * 1.. rules: must pass all to insert
+
+* update
+  * check the doc in database with the rules type *update*
+    * 0 rules: => true
+    * 1.. rules: must pass all: => true
+  * check the resultant doc after insert (simulated) with the rules of type *insert*. We don't want an inconsistent state: if we don't do that, with update we could achieve what is deny by the insert
+    * 0 rules: => true
+    * 1.. rules: must pass all: => true
+  * must be true and true to update
+
+* remove: check doc in database with the rules type *remove*
+  * 0 rules: can remove
+  * 1.. rules: must pass all
+
 API
 ---
 * addRule:
