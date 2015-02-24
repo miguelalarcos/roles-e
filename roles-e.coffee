@@ -67,9 +67,9 @@ roleE.setPermission = (collection) ->
       docSimulateInsert = _.clone(doc)
       for field in fields
         docSimulateInsert[field] = modifier['$set'][field]
-      ncan1 = (not roleE.can(userId, 'update', doc, collection))
-      ncan2 = (not roleE.can(userId, 'insert', docSimulateInsert, collection))
-      return ncan1 or ncan2
+      ncanu = (not roleE.can(userId, 'update', doc, collection))
+      ncani = (not roleE.can(userId, 'insert', docSimulateInsert, collection))
+      return ncanu or ncani
     remove: (userId, doc) ->
       not roleE.can(userId, 'remove', doc, collection)
 

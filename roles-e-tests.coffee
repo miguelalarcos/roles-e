@@ -1,9 +1,14 @@
 @post = new Mongo.Collection 'Posts'
 post.remove({})
 
+flagSetPermission = false
+
 describe 'suite basics', ->
   beforeAll (test)->
-    roleE.setPermission 'post'
+    if not flagSetPermission
+      roleE.setPermission 'post'
+      flagSetPermission = true
+
   beforeEach (test)->
     spies.restoreAll()
     stubs.restoreAll()
