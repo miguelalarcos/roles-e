@@ -9,7 +9,6 @@ describe 'suite basics', ->
       roleE.setPermission 'post'
       flagSetPermission = true
 
-  beforeEach (test)->
     spies.restoreAll()
     stubs.restoreAll()
     post.remove({})
@@ -26,7 +25,13 @@ describe 'suite basics', ->
     stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [{query: {a: '1', b: '2'}, role: 'A'}]})
     stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{query: {a: '1', b: '2'}, role: 'A'}]})
 
+  beforeEach (test)->
+    post.remove({})
+
   afterEach (test) ->
+    post.remove({})
+
+  afterAll (test) ->
     spies.restoreAll()
     stubs.restoreAll()
     post.remove({})

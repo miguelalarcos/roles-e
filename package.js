@@ -1,6 +1,6 @@
 Package.describe({
   name: 'miguelalarcos:roles-e',
-  version: '0.2.4',
+  version: '0.2.5',
   summary: 'A simple role package for Meteor with multiple role inheritance',
   git: 'https://github.com/miguelalarcos/roles-e.git',
   documentation: 'README.md'
