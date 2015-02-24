@@ -1,13 +1,18 @@
 @post = new Mongo.Collection 'TestPosts'
 post.remove({})
 
-flagSetPermission = false
+flag = false
 
 describe 'suite basics', ->
   beforeAll (test)->
-    if not flagSetPermission
+    if not flag
       roleE.setPermission 'post'
-      flagSetPermission = true
+
+      updateOriginal = roleE._update
+      roleE._update = (userId, doc, fields, modifier, collection)->
+        updateOriginal('miguel', doc, fields, modifier, collection)
+
+      flag = true
 
     spies.restoreAll()
     stubs.restoreAll()
@@ -24,7 +29,7 @@ describe 'suite basics', ->
 
     stubs.create '_rules_find', roleE._rules, 'find'
     stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [{query: {a: '1'}, role: 'A'},{query: {a: '1', b: '2'}, role: 'B'}, {query: {a: '1', b: '2', c: '4'}, role: 'D'}]})
-    stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{query: {a: '1', b: '2'}, role: 'A'}]})
+    stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{query: {a: '1', b: '2', owner: null}, role: 'A'}]})
 
   beforeEach (test)->
     post.remove({})
@@ -79,15 +84,15 @@ describe 'suite basics', ->
     test.equal count, 0
 
   it 'test update ok', (test)->
-    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
     try
       Meteor.call '/TestPosts/update', _id: '0', {$set: {c:'9'}}
       test.equal 1,1
     catch error
       test.equal 1,0
 
-  it 'test update ok2', (test)->
-    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
+  it 'test update ok2', (test)-> # es posible que este test no tenga sentido
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
     try
       Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'9'}}
       test.equal 1,1
@@ -95,9 +100,17 @@ describe 'suite basics', ->
       test.equal 1,0
 
   it 'test update fail', (test)->
-    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3'}
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
     try
       Meteor.call '/TestPosts/update', _id: '0', {$set: {c:'4'}}
       test.equal 1,0
     catch
       test.equal 1,1
+
+  it 'test update ok owner', (test)->
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
+    try
+      Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'4'}}
+      test.equal 1,1
+    catch
+      test.equal 1,0

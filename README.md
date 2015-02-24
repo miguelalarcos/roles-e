@@ -3,7 +3,7 @@
 roles-e
 =======
 
-A simple role package for Meteor with multiple role inheritance.
+A simple role package for Meteor with multiple role inheritance and rules to pass for inserting, updating and removing.
 
 Explanation
 -----------
@@ -71,6 +71,8 @@ The algorithm is next (given a collection):
 * remove: check doc in database with the rules type *remove*
   * 0 rules: can remove
   * 1.. rules: must pass all
+
+If you specify one field of a rule with null, when the match is going to happen, this field is substituted with the userId. This is the way to check, for example, that I can edit a post because I'm the owner.
 
 API
 ---

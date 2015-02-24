@@ -1,7 +1,7 @@
 Package.describe({
   name: 'miguelalarcos:roles-e',
-  version: '0.2.7',
-  summary: 'A simple role package for Meteor with multiple role inheritance',
+  version: '0.2.8',
+  summary: 'A simple role package for Meteor with multiple role inheritance and rules to pass for inserting, updating and removing.',
   git: 'https://github.com/miguelalarcos/roles-e.git',
   documentation: 'README.md'
 });

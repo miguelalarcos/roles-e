@@ -21,12 +21,13 @@ roleE._rules = rules
 roleE.can = (userId, type, doc, collection) ->
   ret = []
   for doc_ in rules.find(collection: collection, type: type).fetch()
+    for field of doc_.query
+      if doc_.query[field] is null
+        if userId != doc[field]
+          return false
     subdoc = _.pick(doc, _.keys(doc_.query))
     if _.isEqual(subdoc, doc_.query)
       ret.push roleE.userHasRole(userId, doc_.role)
-  #if _.isEmpty(ret)
-  #  return false
-  #else
   return _.all(ret)
 
 roleE.addRole = (role, bases)->
@@ -65,20 +66,27 @@ roleE.userHasRole = (userId, role)->
   userRoles = Meteor.users.findOne(userId).roles
   return roleE._roleIsIn(role, userRoles)
 
+roleE._update = (userId, doc, fields, modifier, collection)->
+  ncanu = (not roleE.can(userId, 'update', doc, collection))
+  _id = tmp.insert doc
+  tmp.update _id, modifier
+  doc_u = tmp.findOne _id
+  tmp.remove _id
+  ncani = (not roleE.can(userId, 'insert', doc_u, collection))
+
+  return ncanu or ncani
+
+roleE._insert = (userId, doc, collection) ->
+  not roleE.can(userId, 'insert', doc, collection)
+
+roleE._remove = (userId, doc, collection) ->
+  not roleE.can(userId, 'remove', doc, collection)
+
 roleE.setPermission = (collection) ->
   roleE.self[collection].deny
-    insert: (userId, doc) ->
-      not roleE.can(userId, 'insert', doc, collection)
-    update: (userId, doc, fields, modifier)->
-      ncanu = (not roleE.can(userId, 'update', doc, collection))
-      _id = tmp.insert doc
-      tmp.update _id, modifier
-      doc_u = tmp.findOne _id
-      tmp.remove _id
-      ncani = (not roleE.can(userId, 'insert', doc_u, collection))
-      return ncanu or ncani
-    remove: (userId, doc) ->
-      not roleE.can(userId, 'remove', doc, collection)
+    insert: (userId, doc) -> roleE._insert(userId, doc, collection)
+    update : (userId, doc, fields, modifier) -> roleE._update(userId, doc, fields, modifier, collection)
+    remove: (userId, doc) -> roleE._remove(userId, doc, collection)
 
   roleE.self[collection].allow
     insert: -> true
