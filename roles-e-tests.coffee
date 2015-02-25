@@ -12,6 +12,10 @@ describe 'suite basics', ->
       roleE._update = (userId, doc, fields, modifier, collection)->
         updateOriginal('miguel', doc, fields, modifier, collection)
 
+      removeOriginal = roleE._remove
+      roleE._remove = (userId, doc, collection) ->
+        removeOriginal('miguel', doc, collection)
+
       flag = true
 
     spies.restoreAll()
@@ -25,17 +29,17 @@ describe 'suite basics', ->
 
     stubs.create 'meteor_users_findOne', Meteor.users, 'findOne'
     stubs.meteor_users_findOne.withArgs().returns({roles: ['C']})
-    stubs.meteor_users_findOne.withArgs({userId: 'miguel'}).returns({roles: ['A']})
 
     stubs.create '_rules_find', roleE._rules, 'find'
     stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [
-      {query: {a: '1'}, role: 'A'},
-      {query: {a: '1', b: '2'}, role: 'B'},
-      {query: {a: '*', b: '2', c: '3'}, role: 'C'},
-      {query: {a: '1', b: '2', c: '4'}, role: 'D'},
-      {query: {a: '2', b: '2', c: '3'}, role: 'C'}
+      {pattern: {a: '1'}, role: 'A'},
+      {pattern: {a: '1', b: '2'}, role: 'B'},
+      {pattern: {b: '2', c: '3'}, role: 'C'},
+      {pattern: {a: '1', b: '2', c: '4'}, role: 'D'},
+      {pattern: {a: '2', b: '2', c: '3'}, role: 'C'}
     ]})
-    stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{query: {a: '1', b: '2', owner: null}, role: 'A'}]})
+    stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{pattern: {a: '1', b: '2', owner: null}, role: 'A'}]})
+    stubs._rules_find.withArgs({collection: 'post', type: 'remove'}).returns({fetch: -> [{pattern: {a: '1', b: '2', owner: null}, role: 'A'}]})
 
   beforeEach (test)->
     post.remove({})
@@ -125,6 +129,22 @@ describe 'suite basics', ->
     Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'xmiguelx'}
     try
       Meteor.call '/TestPosts/update', _id: '0', {$set: {a:'4'}}
+      test.equal 1,0
+    catch
+      test.equal 1,1
+
+  it 'test remove ok owner', (test)->
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'miguel'}
+    try
+      Meteor.call '/TestPosts/remove', _id: '0'
+      test.equal 1,1
+    catch
+      test.equal 1,0
+
+  it 'test remove fail owner', (test)->
+    Meteor.call '/TestPosts/insert', {_id: '0', a: '1', b: '2', c: '3', owner:'xmiguelx'}
+    try
+      Meteor.call '/TestPosts/remove', _id: '0'
       test.equal 1,0
     catch
       test.equal 1,1

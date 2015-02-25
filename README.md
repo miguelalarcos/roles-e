@@ -25,7 +25,7 @@ roleE.addRolesToUser(['nurse1floor'], userId)
 roleE.addRule {collection: 'post', type: 'insert', name: 'A', query: {code: '04'}, role: 'clinical'}
 roleE.addRule {collection: 'post', type: 'insert', name: 'A2', query: {code: '05'}, role: 'clinical'}
 roleE.addRule {collection: 'post', type: 'insert', name: 'A3', query: {code: '06'}, role: 'clinical'}
-roleE.removeRule {collection: 'post', type: 'insert', name: 'A3'}
+roleE.removeRule 'A3' # the name of rules must be unique in the app
 roleE.addRule {collection: 'post', type: 'update', name: 'B', query: {code: '04'}, role: 'clinical'}
 roleE.addRule {collection: 'post', type: 'remove', name: 'C', query: {code: '04'}, role: 'nurse_supervisor'}
 
@@ -47,15 +47,15 @@ post.remove _id #remove failed: Access denied
 
 You can have several rules like this (given some collection and type 'insert', for example):
 
-* {name: 'F1', query: {a: '*'}, role: 'A'}
+* {name: 'F1', query: {a: '1'}, role: 'A'}
 * {name: 'F2', query: {a: '1', b: '2'}, role: 'B'}
 
 Suppose we want to insert {a:'1', b: '2', c: '3'}, then it matches with the two rules. If user has in his role tree the roles 'A' and 'B', then passes. If one doesn't pass, then it denys.
 
 Update is special because there are two phases:
 
-* check the doc in database with the rules type *update*
-* check the resultant doc after insert (simulated) with the rules of type *insert*. We don't want an inconsistent state: if we don't do that, with update we could achieve what is deny by an insert
+* check the doc in database with the rules type *update*.
+* check the resultant doc after insert (simulated) with the rules of type *insert*. We don't want an inconsistent state: if we don't do that, with update we could achieve what is denied by an insert.
 
 So, if there's one rule that denys, the action is denied. Must be at least one rule that allows so that the action is allowed.
 

@@ -18,13 +18,9 @@ roleE.self = @
 roleE._roles = roles
 roleE._rules = rules
 
-_isMatch = (doc, query) ->
-  doc = _.clone(doc)
-  for key, value of query
-    if value == '*'
-      doc[key] = '*'
-  subdoc = _.pick(doc, _.keys(query))
-  if _.isEqual(subdoc, query)
+_isMatch = (doc, pattern) ->
+  subdoc = _.pick(doc, _.keys(pattern))
+  if _.isEqual(subdoc, pattern)
     return true
   else
     return false
@@ -32,14 +28,13 @@ _isMatch = (doc, query) ->
 roleE.can = (userId, type, doc, collection) ->
   ret = []
   for doc_ in rules.find(collection: collection, type: type).fetch()
-    for field of doc_.query
-      if doc_.query[field] is null
-        delete doc_.query[field]
+    for field of doc_.pattern
+      if doc_.pattern[field] is null
+        delete doc_.pattern[field]
         if userId != doc[field]
           return false
-    if _isMatch(doc, doc_.query)
+    if _isMatch(doc, doc_.pattern)
       ret.push roleE.userHasRole(userId, doc_.role)
-  #return _.all(ret)
   return not _.isEmpty(ret) and _.all(ret)
 
 roleE.addRole = (role, bases)->
@@ -51,8 +46,8 @@ roleE.removeRole = (role)->
 roleE.addRule = (rule) ->
   rules.insert rule
 
-roleE.removeRule = (rule) ->
-  rules.remove(rule)
+roleE.removeRule = (name) ->
+  rules.remove(name:name)
 
 roleE._roleIsIn = (role, bases) ->
   bases = bases[..]
