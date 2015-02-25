@@ -3,18 +3,21 @@ post.remove({})
 
 flag = false
 
+injectArgPosi = (i, obj, method, arg) ->
+  original = obj[method]
+  obj[method] = ->
+    arguments[i] = arg
+    original.apply {}, arguments
+
+injectArgPos0 = _.partial(injectArgPosi, 0)
+
 describe 'suite basics', ->
   beforeAll (test)->
     if not flag
       roleE.setPermission 'post'
 
-      updateOriginal = roleE._update
-      roleE._update = (userId, doc, fields, modifier, collection)->
-        updateOriginal('miguel', doc, fields, modifier, collection)
-
-      removeOriginal = roleE._remove
-      roleE._remove = (userId, doc, collection) ->
-        removeOriginal('miguel', doc, collection)
+      injectArgPos0 roleE, '_update', 'miguel'
+      injectArgPos0 roleE, '_remove', 'miguel'
 
       flag = true
 
@@ -56,8 +59,16 @@ describe 'suite basics', ->
     bool = roleE._roleIsIn 'A', ['C']
     test.equal(bool, true)
 
+  it 'test _roleIsIn true 2', (test) ->
+    bool = roleE._roleIsIn 'A', ['C', 'B']
+    test.equal(bool, true)
+
   it 'test _roleIsIn false', (test) ->
     bool = roleE._roleIsIn 'A', ['B']
+    test.equal(bool, false)
+
+  it 'test _roleIsIn false 2', (test) ->
+    bool = roleE._roleIsIn 'A', []
     test.equal(bool, false)
 
   it 'test userHasRole true', (test) ->
@@ -80,7 +91,11 @@ describe 'suite basics', ->
     bool = roleE.can 'miguel', 'insert', {a: '1', b: '2', c: '4'}, 'post'
     test.equal bool, false
 
-  it 'test insert post', (test) ->
+  it 'test can false 2', (test) ->
+    bool = roleE.can 'miguel', 'insert', {x:5, y:5}, 'post'
+    test.equal bool, false
+
+  it 'test insert post ok', (test) ->
     Meteor.call '/TestPosts/insert', {a: '1', b: '2', c: '3'}
     count = post.find().count()
     test.equal count, 1

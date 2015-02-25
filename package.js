@@ -1,6 +1,6 @@
 Package.describe({
   name: 'miguelalarcos:roles-e',
-  version: '0.4.1',
+  version: '0.4.2',
   summary: 'A simple role package for Meteor with multiple role inheritance and rules.',
   git: 'https://github.com/miguelalarcos/roles-e.git',
   documentation: 'README.md'
@@ -10,7 +10,7 @@ Package.onUse(function(api) {
   api.versionsFrom('1.0.3.1');
   api.use('coffeescript', 'server');
   api.use('mongo', 'server');
-  api.use('jquery', 'server');
+  //api.use('jquery', 'server');
   api.use('underscore', 'server');
   api.addFiles('roles-e.coffee', 'server');
   api.export('roleE', 'server');
@@ -18,6 +18,7 @@ Package.onUse(function(api) {
 
 Package.onTest(function(api) {
     api.use('tinytest');
+    api.use('underscore', 'server');
     api.use('practicalmeteor:munit', 'server');
     api.use('coffeescript');
     api.use('accounts-password');
