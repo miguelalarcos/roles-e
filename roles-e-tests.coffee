@@ -35,12 +35,16 @@ describe 'suite basics', ->
 
     stubs.create '_rules_find', roleE._rules, 'find'
     stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [
+      {pattern: {}, role: 'A'},
       {pattern: {a: '1'}, role: 'A'},
       {pattern: {a: '1', b: '2'}, role: 'B'},
       {pattern: {b: '2', c: '3'}, role: 'C'},
       {pattern: {a: '1', b: '2', c: '4'}, role: 'D'},
       {pattern: {a: '2', b: '2', c: '3'}, role: 'C'}
     ]})
+
+    stubs._rules_find.withArgs({collection: 'post2', type: 'insert'}).returns({fetch: -> []})
+
     stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [{pattern: {a: '1', b: '2', owner: null}, role: 'A'}]})
     stubs._rules_find.withArgs({collection: 'post', type: 'remove'}).returns({fetch: -> [{pattern: {a: '1', b: '2', owner: null}, role: 'A'}]})
 
@@ -91,8 +95,12 @@ describe 'suite basics', ->
     bool = roleE.can 'miguel', 'insert', {a: '1', b: '2', c: '4'}, 'post'
     test.equal bool, false
 
-  it 'test can false 2', (test) ->
+  it 'test can empty rule', (test) ->
     bool = roleE.can 'miguel', 'insert', {x:5, y:5}, 'post'
+    test.equal bool, true
+
+  it 'test can false no rules match', (test) ->
+    bool = roleE.can 'miguel', 'insert', {z: 1}, 'post2'
     test.equal bool, false
 
   it 'test insert post ok', (test) ->
