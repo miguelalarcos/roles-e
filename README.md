@@ -10,37 +10,44 @@ Explanation
 
 Use:
 ```coffee
-#server side
+# server side
 
 roleE.addRole 'A'
-roleE.addRole 'B', ['A']
+roleE.addRole 'B', ['A']  # B extends A role
 roleE.addRole 'C', ['B']
 roleE.addRole 'D', ['B']
 roleE.addRole 'E', ['B']
-roleE.addRole 'F', ['C', 'D', 'E']
+roleE.addRole 'F', ['C', 'D', 'E'] # multiple extend
 roleE.removeRole 'C'
 
 roleE.addRolesToUser(['E'], userId)
 
+# role A can insert in post collection if code == '04' in the doc to be iserted
+# Example: a role 'nurse' can insert a doc with level attribute == 'NURSE'
 roleE.addRule {collection: 'post', type: 'insert', name: 'R1', pattern: {code: '04'}, role: 'A'}
+
 roleE.addRule {collection: 'post', type: 'insert', name: 'R2', pattern: {code: '05'}, role: 'E'}
 roleE.addRule {collection: 'post', type: 'insert', name: 'R3', pattern: {code: '06'}, role: 'E'}
 roleE.removeRule 'R3' # the name of rules must be unique in the app
+
+# role A can update post collection if the doc in database has code == '04' and if the resultant doc after update passes the insert rules.
+# Example: a role 'nurse' can modify a document if the level attribute of that document is 'NURSE', and if not trying to set that level to 'DOCTOR'.
 roleE.addRule {collection: 'post', type: 'update', name: 'R4', pattern: {code: '04'}, role: 'A'}
 roleE.addRule {collection: 'post', type: 'remove', name: 'R5', pattern: {code: '04'}, role: 'F'}
 
+# sets the allow and deny rules to collection 'post'.
 roleE.setPermission 'post'
 
-#client side
+# client side
 
 _id = post.insert
   text: 'insert coin'
   code: '04'
 
 post.update _id, {$set: {text: 'game over!'}}
-post.remove _id #remove failed: Access denied
+post.remove _id # remove failed: Access denied
 
-#both sides
+# both sides
 @post = new Mongo.Collection('Posts')
 
 ```
@@ -74,7 +81,6 @@ API
 Example:
 ```coffee
 roleE.addRule {collection: 'post', type: 'insert', name: 'R3', pattern: {code: '04'}, role: 'A'}
-#this rule will be checked if a doc with the subdoc {code: '04'} is going to be inserted. Role 'A' has the permission to insert
 ```
 
 * removeRule:
@@ -123,10 +129,13 @@ roleE.userHasRole(userId, 'A')
 
 * setPermission:
 ```setPermission = (collection) ->```
+  Sets the allow and deny rules to the collection.
+
 Example:
 ```coffee
 roleE.setPermission 'post'
 ```
 
+---
 Run tests:
   ```meteor test-packages ./```
