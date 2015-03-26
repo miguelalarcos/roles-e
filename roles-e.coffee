@@ -18,12 +18,17 @@ roleE.self = @
 roleE._roles = roles
 roleE._rules = rules
 
-_isMatch = (doc, pattern) ->
-  subdoc = _.pick(doc, _.keys(pattern))
-  if _.isEqual(subdoc, pattern)
-    return true
-  else
-    return false
+roleE._isMatch = (doc, pattern) ->
+  for k, v of pattern
+    if doc[k] is undefined
+      return false
+    if _.isArray(v)
+      if doc[k] not in v
+        return false
+    else
+      if doc[k] != v
+        return false
+  return true
 
 roleE.can = (userId, type, doc, collection) ->
   ret = []
@@ -33,7 +38,7 @@ roleE.can = (userId, type, doc, collection) ->
         delete doc_.pattern[field]
         if userId != doc[field]
           return false
-    if _isMatch(doc, doc_.pattern)
+    if roleE._isMatch(doc, doc_.pattern)
       ret.push roleE.userHasRole(userId, doc_.role)
   return not _.isEmpty(ret) and _.all(ret)
 
@@ -74,28 +79,24 @@ roleE.userHasRole = (userId, role)->
   return roleE._roleIsIn(role, userRoles)
 
 roleE._update = (userId, doc, fields, modifier, collection)->
-  ncanu = (not roleE.can(userId, 'update', doc, collection))
+  canu = roleE.can(userId, 'update', doc, collection)
   _id = tmp.insert doc
   tmp.update _id, modifier
   doc_u = tmp.findOne _id
   tmp.remove _id
-  ncani = (not roleE.can(userId, 'insert', doc_u, collection))
+  cani = roleE.can(userId, 'insert', doc_u, collection)
 
-  return ncanu or ncani
+  return canu and cani
 
 roleE._insert = (userId, doc, collection) ->
-  not roleE.can(userId, 'insert', doc, collection)
+  roleE.can(userId, 'insert', doc, collection)
 
 roleE._remove = (userId, doc, collection) ->
-  not roleE.can(userId, 'remove', doc, collection)
+  roleE.can(userId, 'remove', doc, collection)
 
 roleE.setPermission = (collection) ->
-  roleE.self[collection].deny
+  roleE.self[collection].allow
     insert: (userId, doc) -> roleE._insert(userId, doc, collection)
     update : (userId, doc, fields, modifier) -> roleE._update(userId, doc, fields, modifier, collection)
     remove: (userId, doc) -> roleE._remove(userId, doc, collection)
 
-  roleE.self[collection].allow
-    insert: -> true
-    update: -> true
-    remove: -> true

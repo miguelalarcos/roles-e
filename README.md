@@ -56,15 +56,14 @@ You can have several rules like this (given some collection and type 'insert', f
 
 * {name: 'F1', pattern: {a: '1'}, role: 'A'}
 * {name: 'F2', pattern: {a: '1', b: '2'}, role: 'B'}
+* {name: 'F3', pattern: {a: '1', b: ['3', '4', '5']}, role: 'B'}
 
-Suppose we want to insert {a:'1', b: '2', c: '3'}, then it matches with the two rules. If user has in his role tree the roles 'A' and 'B', then passes. If one doesn't pass, then it denys.
+Suppose we want to insert {a:'1', b: '2', c: '3'}, then it matches with the two first rules. If user has in his role tree the roles 'A' and 'B', then passes. If one doesn't pass, then it does not allow.
 
 Update is special because there are two phases:
 
 * check the doc already in database with the rules type *update*.
 * check the resultant doc after insert (simulated) with the rules of type *insert*. We don't want an inconsistent state: if we don't do that, with update we could achieve what is denied by an insert.
-
-So, if there's one rule that denys, the action is denied. Must be at least one rule that allows so that the action is allowed.
 
 If you specify one field of a rule with null, when the match is going to happen, this field is substituted with the userId and compared with the one in database. This is the way to check, for example, that I can edit a post because I'm the owner.
 For example, given a collection and type='update':
@@ -72,6 +71,12 @@ For example, given a collection and type='update':
 ```coffee
 {pattern: {a: '1', b: '2', owner: null}, role: 'A'}
 
+```
+
+Note that pattern value can be an array:
+
+```coffee
+{name: 'F3', pattern: {a: '1', b: ['3', '4', '5']}, role: 'B'}
 ```
 
 API

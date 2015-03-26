@@ -40,7 +40,8 @@ describe 'suite basics', ->
       {pattern: {a: '1', b: '2'}, role: 'B'},
       {pattern: {b: '2', c: '3'}, role: 'C'},
       {pattern: {a: '1', b: '2', c: '4'}, role: 'D'},
-      {pattern: {a: '2', b: '2', c: '3'}, role: 'C'}
+      {pattern: {a: '2', b: '2', c: '3'}, role: 'C'},
+      {pattern: {a: '2', b: '2', c: ['7','8']}, role: 'C'}
     ]})
 
     stubs._rules_find.withArgs({collection: 'post2', type: 'insert'}).returns({fetch: -> []})
@@ -58,6 +59,18 @@ describe 'suite basics', ->
     spies.restoreAll()
     stubs.restoreAll()
     post.remove({})
+
+  it 'test _isMatch true basic', (test) ->
+    test.isTrue roleE._isMatch({a:7}, {a:7})
+
+  it 'test _isMatch false basic', (test) ->
+    test.isFalse roleE._isMatch({a:7}, {a:8})
+
+  it 'test _isMatch true array', (test) ->
+    test.isTrue roleE._isMatch({a:7}, {a:[7, 8]})
+
+  it 'test _isMatch false array', (test) ->
+    test.isFalse roleE._isMatch({a:7}, {a:[8, 9]})
 
   it 'test _roleIsIn true', (test) ->
     bool = roleE._roleIsIn 'A', ['C']
@@ -89,6 +102,10 @@ describe 'suite basics', ->
 
   it 'test can true 2', (test) ->
     bool = roleE.can 'userId', 'insert', {a: '2', b: '2', c: '3'}, 'post'
+    test.equal bool, true
+
+  it 'test can true array', (test) ->
+    bool = roleE.can 'userId', 'insert', {a: '2', b: '2', c: '7'}, 'post'
     test.equal bool, true
 
   it 'test can false', (test) ->
