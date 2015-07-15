@@ -30,6 +30,14 @@ roleE._isMatch = (doc, pattern) ->
         return false
   return true
 
+roleE.filter = (userId, collection) ->
+  ret = []
+  #userRoles = Meteor.users.findOne(userId).roles
+  for doc_ in rules.find(collection: collection, type: 'find').fetch()
+    if roleE.userHasRole(userId, doc_.role)
+      ret.push doc_.pattern
+  {$or: ret}
+
 roleE.can = (userId, type, doc, collection) ->
   ret = []
   for doc_ in rules.find(collection: collection, type: type).fetch()

@@ -141,6 +141,19 @@ Example:
 roleE.setPermission 'post'
 ```
 
+* filter:
+```filter = (userId, collection) -> ```
+returns an {$or: [filter1, filter2, ...]} where filters are registered this way:
+
+```coffee
+roleE.addRule {collection: 'authors', type: 'find', name: 'filter author', pattern: {x:555}, role: 'B'}
+```
+Example:
+```coffee
+Meteor.publish 'authors_filtered', ->
+  authors.find(roleE.filter(this.userId, 'authors'))
+```
+
 Security
 --------
 You can integrate with ```ongoworks:security```. Here is an example:
