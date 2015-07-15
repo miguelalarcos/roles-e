@@ -55,6 +55,7 @@ roleE.removeRule = (name) ->
   rules.remove(name:name)
 
 roleE._roleIsIn = (role, bases) ->
+  bases = bases or []
   bases = bases[..]
   done = bases[..]
   flag = false
@@ -99,4 +100,15 @@ roleE.setPermission = (collection) ->
     insert: (userId, doc) -> roleE._insert(userId, doc, collection)
     update : (userId, doc, fields, modifier) -> roleE._update(userId, doc, fields, modifier, collection)
     remove: (userId, doc) -> roleE._remove(userId, doc, collection)
+
+Meteor.methods
+  canInsert: (doc, collection) ->
+    roleE._insert(this.userId, doc, collection)
+  canUpdate: (doc, fields, modifier, collection) ->
+    #roleE._insert(this.userId, modifier['$set'], collection)
+    roleE._update(this.userId, doc, fields, modifier, collection)
+  canRemove: (doc, collection) ->
+    roleE._remove(this.userId, doc, collection)
+  canSave: (doc, collection) ->
+    roleE._insert(this.userId, doc, collection)
 

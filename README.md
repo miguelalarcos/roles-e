@@ -141,6 +141,25 @@ Example:
 roleE.setPermission 'post'
 ```
 
+Security
+--------
+You can integrate with ```ongoworks:security```. Here is an example:
+
+```coffee
+Security.defineMethod "ifRolesE",
+  fetch: []
+  transform: null
+  deny: (type, arg, userId, doc, fields, modifier) ->
+    if type == 'insert'
+      not roleE._insert(userId, doc, arg)
+    else if type == 'update'
+      not roleE._update(userId, doc, fields, modifier, arg)
+    else
+      not roleE._remove(userId, doc, arg)
+
+authors.permit(['insert', 'update', 'remove']).ifRolesE('authors').apply()
+```
+
 ---
 Run tests:
   ```meteor test-packages ./```
