@@ -32,7 +32,6 @@ roleE._isMatch = (doc, pattern) ->
 
 roleE.filter = (userId, collection) ->
   ret = []
-  #userRoles = Meteor.users.findOne(userId).roles
   for doc_ in rules.find(collection: collection, type: 'find').fetch()
     if roleE.userHasRole(userId, doc_.role)
       ret.push doc_.pattern
@@ -97,6 +96,9 @@ roleE._update = (userId, doc, fields, modifier, collection)->
 
   return canu and cani
 
+roleE._edit = (userId, doc, collection) ->
+  roleE.can(userId, 'update', doc, collection)
+
 roleE._insert = (userId, doc, collection) ->
   roleE.can(userId, 'insert', doc, collection)
 
@@ -110,13 +112,14 @@ roleE.setPermission = (collection) ->
     remove: (userId, doc) -> roleE._remove(userId, doc, collection)
 
 Meteor.methods
-  canInsert: (doc, collection) ->
-    roleE._insert(this.userId, doc, collection)
-  canUpdate: (doc, fields, modifier, collection) ->
-    #roleE._insert(this.userId, modifier['$set'], collection)
-    roleE._update(this.userId, doc, fields, modifier, collection)
+  #canInsert: (doc, collection) ->
+  #  roleE._insert(this.userId, doc, collection)
+  #canUpdate: (doc, fields, modifier, collection) ->
+  #  roleE._update(this.userId, doc, fields, modifier, collection)
   canRemove: (doc, collection) ->
     roleE._remove(this.userId, doc, collection)
-  canSave: (doc, collection) ->
-    roleE._insert(this.userId, doc, collection)
+  #canSave: (doc, collection) ->
+  #  roleE._insert(this.userId, doc, collection)
+  canEdit: (doc, collection) ->
+    roleE._edit(this.userId, doc, collection)
 
