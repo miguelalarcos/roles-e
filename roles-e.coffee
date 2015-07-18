@@ -81,6 +81,8 @@ roleE._roleIsIn = (role, bases) ->
 roleE.addRolesToUser = (roles_, userId) ->
   Meteor.users.update(userId, {$push: {roles: {$each: roles_}}})
 
+roleE.setRolesToUser = (roles, userId) ->
+  Meteor.users.update(userId, {$set: {roles: roles}})
 
 roleE.userHasRole = (userId, role)->
   userRoles = Meteor.users.findOne(userId).roles

@@ -125,6 +125,13 @@ Example:
 roleE.addRolesToUser(['D', 'E'], userId)
 ```
 
+* setRolesToUser:
+```setRolesToUser = (roles, userId) ->```
+Example:
+```coffee
+roleE.setRolesToUser(['D', 'E'], userId)
+```
+
 * userHasRole:
 ```userHasRole = (userId, role)->```
 Example:
