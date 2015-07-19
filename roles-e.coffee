@@ -38,6 +38,30 @@ roleE.filter = (userId, collection) ->
   {$or: ret}
 
 roleE.can = (userId, type, doc, collection) ->
+  patterns = []
+  toRemove = []
+  for doc_ in rules.find(collection: collection, type: type).fetch()
+    flag = false
+    for field of doc_.pattern
+      if doc_.pattern[field] is null
+        if userId == doc[field]
+          return true
+        else
+          flag = true
+          break
+    if flag then continue
+    if roleE._isMatch(doc, doc_.pattern)
+      for patt in patterns
+        if roleE._isMatch(patt.pattern, doc_.pattern)
+          continue
+        else if roleE._isMatch(doc_.pattern, patt.pattern)
+          toRemove.push patt
+      patterns.push {pattern: doc_.pattern, value: roleE.userHasRole(userId, doc_.role)}
+
+  patterns = (patt for patt in patterns when patt not in toRemove)
+  return not _.isEmpty(patterns) and _.all(x.value for x in patterns)
+
+roleE._can = (userId, type, doc, collection) -> # deprecated
   ret = []
   for doc_ in rules.find(collection: collection, type: type).fetch()
     flag = false

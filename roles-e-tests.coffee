@@ -188,3 +188,70 @@ describe 'suite basics', ->
       test.equal 1,0
     catch
       test.equal 1,1
+
+# ##############
+describe 'suite can', ->
+  beforeAll (test)->
+    if not flag
+      roleE.setPermission 'post'
+
+      injectArgPos0 roleE, '_update', 'miguel'
+      injectArgPos0 roleE, '_remove', 'miguel'
+
+      flag = true
+
+    spies.restoreAll()
+    stubs.restoreAll()
+    post.remove({})
+
+    stubs.create '_roles_findOne', roleE._roles, 'findOne'
+    stubs._roles_findOne.withArgs({role: 'A'}).returns({bases: null})
+    stubs._roles_findOne.withArgs({role: 'B'}).returns({bases: null})
+    stubs._roles_findOne.withArgs({role: 'C'}).returns({bases: ['A', 'B']})
+
+    stubs.create 'meteor_users_findOne', Meteor.users, 'findOne'
+    stubs.meteor_users_findOne.withArgs().returns({roles: ['C']})
+
+    stubs.create '_rules_find', roleE._rules, 'find'
+    stubs._rules_find.withArgs({collection: 'post', type: 'insert'}).returns({fetch: -> [
+      {pattern: {a: '1'}, role: 'R'}
+      {pattern: {a: '1', b:'2'}, role: 'A'}
+      {pattern: {c: '3'}, role: 'R'}
+      {pattern: {c: '4'}, role: 'A'}
+    ]})
+
+
+    stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [
+      {pattern: {owner: null, role: 'A'}}
+    ]})
+
+  beforeEach (test)->
+    post.remove({})
+
+  afterEach (test) ->
+    post.remove({})
+
+  afterAll (test) ->
+    spies.restoreAll()
+    stubs.restoreAll()
+    post.remove({})
+
+  it 'test can a: 1', (test) ->
+    bool = roleE.can 'userId', 'insert', {a: '1'}, 'post'
+    test.equal bool, false
+
+  it 'test can 0', (test) ->
+    bool = roleE.can 'userId', 'insert', {a: '1', b: '2', c: '3'}, 'post'
+    test.equal bool, false
+
+  it 'test can 1', (test) ->
+    bool = roleE.can 'userId', 'insert', {a: '1', b: '2', c: '4'}, 'post'
+    test.equal bool, true
+
+  it 'test can 2', (test) ->
+    bool = roleE.can 'miguel', 'update', {owner: 'miguel'}, 'post'
+    test.equal bool, true
+
+  it 'test can 3', (test) ->
+    bool = roleE.can 'miguel', 'update', {owner: null}, 'post'
+    test.equal bool, false
