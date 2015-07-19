@@ -40,11 +40,18 @@ roleE.filter = (userId, collection) ->
 roleE.can = (userId, type, doc, collection) ->
   ret = []
   for doc_ in rules.find(collection: collection, type: type).fetch()
+    flag = false
     for field of doc_.pattern
       if doc_.pattern[field] is null
-        delete doc_.pattern[field]
+        #delete doc_.pattern[field]
         if userId != doc[field]
-          return false
+          #return false
+          flag = true
+          break
+        else
+          return true
+    if flag
+      continue
     if roleE._isMatch(doc, doc_.pattern)
       ret.push roleE.userHasRole(userId, doc_.role)
   return not _.isEmpty(ret) and _.all(ret)
@@ -118,10 +125,10 @@ Meteor.methods
   #  roleE._insert(this.userId, doc, collection)
   #canUpdate: (doc, fields, modifier, collection) ->
   #  roleE._update(this.userId, doc, fields, modifier, collection)
-  canRemove: (doc, collection) ->
+  roleEcanRemove: (doc, collection) ->
     roleE._remove(this.userId, doc, collection)
   #canSave: (doc, collection) ->
   #  roleE._insert(this.userId, doc, collection)
-  canEdit: (doc, collection) ->
+  roleEcanEdit: (doc, collection) ->
     roleE._edit(this.userId, doc, collection)
 

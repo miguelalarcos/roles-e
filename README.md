@@ -12,6 +12,8 @@ Use:
 ```coffee
 # server side
 
+pc = new Mongo.Collection 'post'
+
 roleE.addRole 'A'
 roleE.addRole 'B', ['A']  # B extends A role
 roleE.addRole 'C', ['B']
@@ -69,9 +71,9 @@ If you specify one field of a rule with null, when the match is going to happen,
 For example, given a collection and type='update':
 
 ```coffee
-{pattern: {a: '1', b: '2', owner: null}, role: 'A'}
-
+{pattern: {owner: null}, role: 'A'}
 ```
+In this case, if checks true then the match is ok, but if it fails, it continues checking the next patterns.
 
 Note that pattern value can be an array:
 
