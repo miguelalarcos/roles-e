@@ -222,7 +222,8 @@ describe 'suite can', ->
 
 
     stubs._rules_find.withArgs({collection: 'post', type: 'update'}).returns({fetch: -> [
-      {pattern: {owner: null, role: 'A'}}
+      {pattern: {owner: null}, role: 'A'}
+      {pattern: {a: [1,2,3]}, role: 'A'}
     ]})
 
   beforeEach (test)->
@@ -255,3 +256,12 @@ describe 'suite can', ->
   it 'test can 3', (test) ->
     bool = roleE.can 'miguel', 'update', {owner: null}, 'post'
     test.equal bool, false
+
+  it 'test can 4', (test) ->
+    bool = roleE.can 'miguel', 'update', {a:1}, 'post'
+    test.equal bool, true
+
+  it 'test can 5', (test) ->
+    bool = roleE.can 'miguel', 'update', {a: 4}, 'post'
+    test.equal bool, false
+

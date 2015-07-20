@@ -12,8 +12,6 @@ Use:
 ```coffee
 # server side
 
-pc = new Mongo.Collection 'post'
-
 roleE.addRole 'A'
 roleE.addRole 'B', ['A']  # B extends A role
 roleE.addRole 'C', ['B']
@@ -24,7 +22,7 @@ roleE.removeRole 'C'
 
 roleE.addRolesToUser(['E'], userId)
 
-# role A can insert in post collection if code == '04' in the doc to be iserted
+# role A can insert in post collection if code == '04' in the doc to be inserted
 # Example: a role 'nurse' can insert a doc with level attribute == 'NURSE'
 roleE.addRule {collection: 'post', type: 'insert', name: 'R1', pattern: {code: '04'}, role: 'A'}
 
@@ -42,15 +40,15 @@ roleE.setPermission 'post'
 
 # client side
 
-_id = post.insert
+_id = pt.insert
   text: 'insert coin'
   code: '04'
 
-post.update _id, {$set: {text: 'game over!'}}
-post.remove _id # remove failed: Access denied
+pt.update _id, {$set: {text: 'game over!'}}
+pt.remove _id # remove failed: Access denied
 
 # both sides
-@post = new Mongo.Collection('Posts')
+@pt = new Mongo.Collection('post')
 
 ```
 
@@ -58,9 +56,12 @@ You can have several rules like this (given some collection and type 'insert', f
 
 * {name: 'F1', pattern: {a: '1'}, role: 'A'}
 * {name: 'F2', pattern: {a: '1', b: '2'}, role: 'B'}
-* {name: 'F3', pattern: {a: '1', b: ['3', '4', '5']}, role: 'B'}
+* {name: 'F3', pattern: {c:'3'}, role: 'C'}
 
-Suppose we want to insert {a:'1', b: '2', c: '3'}, then it matches with the two first rules. If user has in his role tree the roles 'A' and 'B', then passes. If one doesn't pass, then it does not allow.
+The algorithm explained:
+
+If you are going to insert the next doc {a: '1', b:'2', c:'3'}, then the doc matches with te three rules. But F1 is a subset of F2,
+so it's not considered. Then, if the user has the roles 'B' and 'C', the insert will success.
 
 Update is special because there are two phases:
 
